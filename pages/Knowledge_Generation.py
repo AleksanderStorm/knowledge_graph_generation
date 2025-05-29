@@ -9,9 +9,8 @@
 # main_streamlit_app.py
 import streamlit as st
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator, ValidationError
+from pydantic import BaseModel, Field, field_validator, ValidationError
 from neo4j import GraphDatabase, basic_auth
-import json
 
 # --- 1. Conceptual Ontology & Pydantic Models ---
 # (Same Pydantic models as before)
@@ -21,7 +20,7 @@ class BaseNode(BaseModel):
     type: str = Field(..., description="Type of the node (e.g., 'Well', 'Formation').")
     attributes: Dict[str, Any] = Field(default_factory=dict, description="Key-value properties of the node.")
 
-    @validator('id', pre=True, always=True)
+    @field_validator('id', pre=True, always=True)
     def sanitize_id(cls, v):
         return str(v).replace(" ", "_").replace("/", "_").replace(":", "_")
 
@@ -60,7 +59,7 @@ class Relationship(BaseModel):
     relationship_type: str
     properties: Dict[str, Any] = Field(default_factory=dict)
 
-    @validator('source_id', 'target_id', pre=True, always=True)
+    @field_validator('source_id', 'target_id', pre=True, always=True)
     def sanitize_ids_in_relationship(cls, v):
         return str(v).replace(" ", "_").replace("/", "_").replace(":", "_")
 
@@ -335,7 +334,7 @@ if st.session_state.validated_kg_data:
                             st.code("MATCH (n) RETURN n LIMIT 25;", language="cypher")
                             st.code("MATCH (w:Well)-[:TARGETS_FORMATION]->(f:Formation) RETURN w, f;", language="cypher")
                             st.code("MATCH p=()-[r]->() RETURN p LIMIT 50;", language="cypher")
-            except Exception as e:
+            except Exception:
                 # Error already displayed by Neo4jUploader init or upload_kg_data
                 # st.error(f"An error occurred: {e}") # Redundant if already handled
                 pass # Errors are displayed within Neo4jUploader

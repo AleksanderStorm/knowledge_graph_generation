@@ -1,7 +1,6 @@
 # pages/Analysis.py
 import streamlit as st
 import spacy # Uncomment if you want to use NLP features
-from spacy import displacy
 from utils.nlp_utils import extract_entity_pairs,extract_relation  # Assuming you have a utility function to load your NLP model
 nlp = spacy.load("en_core_web_sm")  # Uncomment if you want to use NLP features
 

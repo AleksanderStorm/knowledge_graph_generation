@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: knowledge-graph-generation
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: ipython>=9.2.0
+Requires-Dist: neo4j>=5.28.1
+Requires-Dist: nlp>=0.4.0
+Requires-Dist: pydantic>=2.11.5
+Requires-Dist: spacy>=3.8.7

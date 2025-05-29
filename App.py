@@ -28,7 +28,8 @@ pages = {
     "General": [
         st.Page('pages/Home.py', title="Home", icon="🏠"),
         st.Page('pages/Dashboard.py', title="Dashboard", icon="📈"),
-        st.Page('pages/Analysis.py', title="Analysis", icon="📊")
+        st.Page('pages/Analysis.py', title="Analysis", icon="📊"),
+        st.Page('pages/Knowledge_Generation.py', title="Knowledge Graph Generation", icon="📊")
     ]
 }
 

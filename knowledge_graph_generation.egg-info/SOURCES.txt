@@ -9,3 +9,4 @@ pages/Analysis.py
 pages/Dashboard.py
 pages/Home.py
 pages/Knowledge_Generation.py
+pages/Neo4j_KG.py

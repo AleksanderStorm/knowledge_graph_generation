@@ -9,7 +9,9 @@ dependencies = [
     "ipykernel>=6.29.5",
     "ipython>=9.2.0",
     "neo4j>=5.28.1",
+    "neo4j-graphrag>=1.7.0",
     "nlp>=0.4.0",
+    "polar>=0.0.127",
     "pydantic>=2.11.5",
     "spacy>=3.8.7",
 ]

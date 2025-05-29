@@ -29,7 +29,8 @@ pages = {
         st.Page('pages/Home.py', title="Home", icon="🏠"),
         st.Page('pages/Dashboard.py', title="Dashboard", icon="📈"),
         st.Page('pages/Analysis.py', title="Analysis", icon="📊"),
-        st.Page('pages/Knowledge_Generation.py', title="Knowledge Graph Generation", icon="📊")
+        st.Page('pages/Knowledge_Generation.py', title="Knowledge Graph Generation", icon="📊"),
+        st.Page('pages/Neo4j_KG.py', title="Neo4 Knowledge Graph Generation", icon="📊")
     ]
 }
 

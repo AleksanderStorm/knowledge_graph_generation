@@ -5,15 +5,21 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "display>=1.0.0",
     "duckdb>=1.3.0",
     "ipykernel>=6.29.5",
     "ipython>=9.2.0",
     "neo4j>=5.28.1",
     "neo4j-graphrag>=1.7.0",
     "nlp>=0.4.0",
-    "polar>=0.0.127",
+    "openai>=1.82.1",
+    "pip>=25.1.1",
     "pydantic>=2.11.5",
+    "rapidfuzz>=3.13.0",
+    "setuptools>=80.9.0",
     "spacy>=3.8.7",
+    "streamlit>=1.45.1",
+    "wheel>=0.45.1",
 ]
 
 [build-system]

@@ -14,13 +14,19 @@ from neo4j import GraphDatabase, basic_auth
 
 # --- 1. Conceptual Ontology & Pydantic Models ---
 # (Same Pydantic models as before)
+# --- Streamlit UI ---
+#st.set_page_config(page_title="Oil & Gas KG Pipeline (Norway Subsurface)", layout="wide")
+
+st.title("🛢️ Oil & Gas Knowledge Graph Pipeline")
+st.caption("Norway Subsurface Domain - LLM, Pydantic, Neo4j Integration Demo")
+
 
 class BaseNode(BaseModel):
     id: str = Field(..., description="Unique identifier for the node (e.g., name, official ID).")
     type: str = Field(..., description="Type of the node (e.g., 'Well', 'Formation').")
     attributes: Dict[str, Any] = Field(default_factory=dict, description="Key-value properties of the node.")
 
-    @field_validator('id', pre=True, always=True)
+    @field_validator('id', mode='before')
     def sanitize_id(cls, v):
         return str(v).replace(" ", "_").replace("/", "_").replace(":", "_")
 
@@ -57,9 +63,9 @@ class Relationship(BaseModel):
     target_id: str
     target_type: str
     relationship_type: str
-    properties: Dict[str, Any] = Field(default_factory=dict)
+    properties: Dict[str, Any] = {}#Field(default_factory=dict)
 
-    @field_validator('source_id', 'target_id', pre=True, always=True)
+    @field_validator('source_id', 'target_id', mode='before')
     def sanitize_ids_in_relationship(cls, v):
         return str(v).replace(" ", "_").replace("/", "_").replace(":", "_")
 
@@ -214,11 +220,6 @@ class Neo4jUploader:
         # st.write(f"Executing Relationship Query for type: {rel.relationship_type}") # For debugging
         tx.run(query, **params)
 
-# --- Streamlit UI ---
-st.set_page_config(page_title="Oil & Gas KG Pipeline (Norway Subsurface)", layout="wide")
-
-st.title("🛢️ Oil & Gas Knowledge Graph Pipeline")
-st.caption("Norway Subsurface Domain - LLM, Pydantic, Neo4j Integration Demo")
 
 # --- Sidebar for Configuration ---
 with st.sidebar:
@@ -249,104 +250,105 @@ with st.sidebar:
 # --- Main Application Flow ---
 
 # Section 1: Conceptual Schema (Pydantic Models)
-st.header("1. Conceptual Schema (Pydantic Models)")
-with st.expander("View Pydantic Model Definitions (Schema)"):
-    st.markdown("""
-    The following Pydantic models define the expected structure for our knowledge graph entities and relationships.
-    This acts as our schema, inspired by RDF/OWL principles.
-    """)
-    models_code = """
-class BaseNode(BaseModel):
-    id: str
-    type: str
-    attributes: Dict[str, Any]
+def main():
+    st.header("1. Conceptual Schema (Pydantic Models)")
+    with st.expander("View Pydantic Model Definitions (Schema)"):
+        st.markdown("""
+        The following Pydantic models define the expected structure for our knowledge graph entities and relationships.
+        This acts as our schema, inspired by RDF/OWL principles.
+        """)
+        models_code = """
+    class BaseNode(BaseModel):
+        id: str
+        type: str
+        attributes: Dict[str, Any]
 
-class Well(BaseNode): type = "Well"; wellbore_name: Optional[str]; ...
-class Formation(BaseNode): type = "Formation"; geologic_age: Optional[str]; ...
-class Field(BaseNode): type = "Field"; discovery_year: Optional[int]; ...
-class License(BaseNode): type = "License"; awarded_date: Optional[str]; ...
-class Company(BaseNode): type = "Company"; country_of_registration: Optional[str]; ...
+    class Well(BaseNode): type = "Well"; wellbore_name: Optional[str]; ...
+    class Formation(BaseNode): type = "Formation"; geologic_age: Optional[str]; ...
+    class Field(BaseNode): type = "Field"; discovery_year: Optional[int]; ...
+    class License(BaseNode): type = "License"; awarded_date: Optional[str]; ...
+    class Company(BaseNode): type = "Company"; country_of_registration: Optional[str]; ...
 
-class Relationship(BaseModel):
-    source_id: str; source_type: str
-    target_id: str; target_type: str
-    relationship_type: str
-    properties: Dict[str, Any]
+    class Relationship(BaseModel):
+        source_id: str; source_type: str
+        target_id: str; target_type: str
+        relationship_type: str
+        properties: Dict[str, Any]
 
-class KnowledgeGraphData(BaseModel):
-    nodes: List[BaseNode]
-    relationships: List[Relationship]
-    """
-    st.code(models_code, language="python")
+    class KnowledgeGraphData(BaseModel):
+        nodes: List[BaseNode]
+        relationships: List[Relationship]
+        """
+        st.code(models_code, language="python")
 
-# Section 2: LLM Input and Simulated Output
-st.header("2. LLM-NER Processing (Simulated)")
-st.subheader("Example Input Text for LLM")
-st.text_area("Input Text", EXAMPLE_INPUT_TEXT, height=150, disabled=True)
+    # Section 2: LLM Input and Simulated Output
+    st.header("2. LLM-NER Processing (Simulated)")
+    st.subheader("Example Input Text for LLM")
+    st.text_area("Input Text", EXAMPLE_INPUT_TEXT, height=150, disabled=True)
 
-st.subheader("Simulated LLM JSON Output")
-with st.expander("View Simulated LLM JSON"):
-    st.json(MOCK_LLM_OUTPUT)
+    st.subheader("Simulated LLM JSON Output")
+    with st.expander("View Simulated LLM JSON"):
+        st.json(MOCK_LLM_OUTPUT)
 
-# Initialize validated_kg_data in session state
-if 'validated_kg_data' not in st.session_state:
-    st.session_state.validated_kg_data = None
+    # Initialize validated_kg_data in session state
+    if 'validated_kg_data' not in st.session_state:
+        st.session_state.validated_kg_data = None
 
-# Section 3: Pydantic Validation
-st.header("3. Pydantic Validation")
-if st.button("🔍 Validate LLM Output"):
-    with st.spinner("Validating data..."):
-        st.session_state.validated_kg_data = parse_and_validate_llm_output(MOCK_LLM_OUTPUT)
-        if st.session_state.validated_kg_data:
-            st.success("Pydantic validation successful!")
-        # Errors are handled within the function by st.error
+    # Section 3: Pydantic Validation
+    st.header("3. Pydantic Validation")
+    if st.button("🔍 Validate LLM Output"):
+        with st.spinner("Validating data..."):
+            st.session_state.validated_kg_data = parse_and_validate_llm_output(MOCK_LLM_OUTPUT)
+            if st.session_state.validated_kg_data:
+                st.success("Pydantic validation successful!")
+            # Errors are handled within the function by st.error
 
-if st.session_state.validated_kg_data:
-    st.subheader("Validated Knowledge Graph Data")
-    with st.expander("View Validated Data (Pydantic Models as JSON)"):
-        # Convert Pydantic models to dicts for JSON serialization
-        display_data = {
-            "nodes": [node.model_dump() for node in st.session_state.validated_kg_data.nodes],
-            "relationships": [rel.model_dump() for rel in st.session_state.validated_kg_data.relationships]
-        }
-        st.json(display_data)
-else:
-    st.info("Click 'Validate LLM Output' to see results.")
+    if st.session_state.validated_kg_data:
+        st.subheader("Validated Knowledge Graph Data")
+        with st.expander("View Validated Data (Pydantic Models as JSON)"):
+            # Convert Pydantic models to dicts for JSON serialization
+            display_data = {
+                "nodes": [node.model_dump() for node in st.session_state.validated_kg_data.nodes],
+                "relationships": [rel.model_dump() for rel in st.session_state.validated_kg_data.relationships]
+            }
+            st.json(display_data)
+    else:
+        st.info("Click 'Validate LLM Output' to see results.")
 
 
-# Section 4: Neo4j Upload
-st.header("4. Neo4j Upload")
-if st.session_state.validated_kg_data:
-    if st.button("🚀 Upload Validated Data to Neo4j"):
-        if not neo4j_uri or not neo4j_user or not neo4j_password:
-            st.warning("Please provide Neo4j connection details in the sidebar.")
-        else:
-            uploader = None
-            try:
-                with st.spinner("Connecting to Neo4j and uploading data..."):
-                    uploader = Neo4jUploader(neo4j_uri, neo4j_user, neo4j_password)
-                    if uploader._driver: # Check if driver was successfully initialized
-                        success = uploader.upload_kg_data(st.session_state.validated_kg_data)
-                        if success:
-                            st.balloons()
-                            st.markdown("---")
-                            st.subheader("🔎 Example Neo4j Queries")
-                            st.code("MATCH (n) RETURN n LIMIT 25;", language="cypher")
-                            st.code("MATCH (w:Well)-[:TARGETS_FORMATION]->(f:Formation) RETURN w, f;", language="cypher")
-                            st.code("MATCH p=()-[r]->() RETURN p LIMIT 50;", language="cypher")
-            except Exception:
-                # Error already displayed by Neo4jUploader init or upload_kg_data
-                # st.error(f"An error occurred: {e}") # Redundant if already handled
-                pass # Errors are displayed within Neo4jUploader
-            finally:
-                if uploader:
-                    uploader.close()
-                    # st.info("Neo4j connection closed.") # Can be a bit noisy
-else:
-    st.warning("Data must be validated successfully before it can be uploaded to Neo4j.")
+    # Section 4: Neo4j Upload
+    st.header("4. Neo4j Upload")
+    if st.session_state.validated_kg_data:
+        if st.button("🚀 Upload Validated Data to Neo4j"):
+            if not neo4j_uri or not neo4j_user or not neo4j_password:
+                st.warning("Please provide Neo4j connection details in the sidebar.")
+            else:
+                uploader = None
+                try:
+                    with st.spinner("Connecting to Neo4j and uploading data..."):
+                        uploader = Neo4jUploader(neo4j_uri, neo4j_user, neo4j_password)
+                        if uploader._driver: # Check if driver was successfully initialized
+                            success = uploader.upload_kg_data(st.session_state.validated_kg_data)
+                            if success:
+                                st.balloons()
+                                st.markdown("---")
+                                st.subheader("🔎 Example Neo4j Queries")
+                                st.code("MATCH (n) RETURN n LIMIT 25;", language="cypher")
+                                st.code("MATCH (w:Well)-[:TARGETS_FORMATION]->(f:Formation) RETURN w, f;", language="cypher")
+                                st.code("MATCH p=()-[r]->() RETURN p LIMIT 50;", language="cypher")
+                except Exception:
+                    # Error already displayed by Neo4jUploader init or upload_kg_data
+                    # st.error(f"An error occurred: {e}") # Redundant if already handled
+                    pass # Errors are displayed within Neo4jUploader
+                finally:
+                    if uploader:
+                        uploader.close()
+                        # st.info("Neo4j connection closed.") # Can be a bit noisy
+    else:
+        st.warning("Data must be validated successfully before it can be uploaded to Neo4j.")
 
-st.markdown("---")
-st.markdown("End of Demo Application.")
+    st.markdown("---")
+    st.markdown("End of Demo Application.")
 
 if __name__ in ("__main__", "__page__"):
     main()
